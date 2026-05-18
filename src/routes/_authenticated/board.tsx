@@ -6,9 +6,14 @@ import { useAppStore } from "@/stores/useAppStore";
 import { AppHeader } from "@/components/AppHeader";
 import { PatientCard, type PatientRow } from "@/components/PatientCard";
 import { AddPatientDialog } from "@/components/AddPatientDialog";
+import { KpiHeader } from "@/components/KpiHeader";
+import { useShiftKpis } from "@/hooks/useShiftKpis";
+import { useRole } from "@/hooks/useRole";
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { PRIORITY_ORDER } from "@/lib/priority";
 import { minutesSince } from "@/lib/time";
-import { Users } from "lucide-react";
+import { Users, ShieldCheck, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/board")({
   component: BoardPage,
@@ -21,6 +26,8 @@ function BoardPage() {
   const currentShiftId = useAppStore((s) => s.currentShiftId);
   const [patients, setPatients] = useState<PatientRow[]>([]);
   const [shiftName, setShiftName] = useState("");
+  const kpis = useShiftKpis(currentShiftId);
+  const { isSupervisor } = useRole();
 
   useEffect(() => {
     if (!currentShiftId) {
@@ -82,7 +89,8 @@ function BoardPage() {
     };
   }, [currentShiftId, router, user]);
 
-  const sorted = [...patients].sort((a, b) => {
+  const visible = patients;
+  const sorted = [...visible].sort((a, b) => {
     const d = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
     if (d !== 0) return d;
     return new Date(a.last_attended_at).getTime() - new Date(b.last_attended_at).getTime();
@@ -99,6 +107,23 @@ function BoardPage() {
     <div className="min-h-screen bg-background pb-28">
       <AppHeader title={shiftName} />
       <main className="mx-auto max-w-md p-3 space-y-3">
+        <KpiHeader kpis={kpis} />
+        <div className="flex gap-2">
+          <Button asChild variant="outline" className="h-11 flex-1">
+            <Link to="/my-shift">
+              <Trophy className="h-4 w-4" />
+              Mi turno
+            </Link>
+          </Button>
+          {isSupervisor && (
+            <Button asChild variant="outline" className="h-11 flex-1">
+              <Link to="/supervisor">
+                <ShieldCheck className="h-4 w-4" />
+                Supervisión
+              </Link>
+            </Button>
+          )}
+        </div>
         <div className="grid grid-cols-4 gap-2">
           {([
             ["critical", "Crít.", "var(--priority-critical)"],

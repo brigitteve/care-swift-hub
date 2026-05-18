@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Package, Plus, Minus } from "lucide-react";
 import { formatSince } from "@/lib/time";
 
-interface Supply { id: string; name: string; unit: string }
+interface Supply { id: string; name: string; unit: string; stock?: number; min_stock?: number }
 interface Usage {
   id: string;
   quantity: number;
@@ -44,7 +44,7 @@ export function SuppliesTab({
   };
 
   useEffect(() => {
-    supabase.from("supplies").select("*").order("name").then(({ data }) => {
+    supabase.from("supplies").select("id,name,unit,stock,min_stock").order("name").then(({ data }) => {
       setSupplies((data as Supply[]) ?? []);
     });
     loadUsages();
@@ -60,9 +60,31 @@ export function SuppliesTab({
       quantity: qty,
     });
     if (error) return toast.error(error.message);
+    // Decrement stock + low-stock alert
+    const sup = supplies.find((s) => s.id === supplyId);
+    if (sup) {
+      const newStock = Math.max(0, (sup.stock ?? 0) - qty);
+      await supabase.from("supplies").update({ stock: newStock }).eq("id", supplyId);
+      if (newStock <= (sup.min_stock ?? 0)) {
+        await supabase.from("alerts").insert({
+          patient_id: patientId,
+          user_id: userId,
+          type: "low_stock",
+          severity: "urgent",
+          priority_score: 70,
+          message: `Stock bajo: ${sup.name} (${newStock} ${sup.unit})`,
+        });
+      }
+    }
     toast.success("Insumo registrado");
     setQty(1);
     setSupplyId("");
+    // Refresh supplies for updated stock
+    const { data } = await supabase
+      .from("supplies")
+      .select("id,name,unit,stock,min_stock")
+      .order("name");
+    setSupplies((data as Supply[]) ?? []);
     loadUsages();
   };
 
@@ -79,6 +101,17 @@ export function SuppliesTab({
               {supplies.map((s) => (
                 <SelectItem key={s.id} value={s.id} className="text-base">
                   {s.name}
+                  {typeof s.stock === "number" && (
+                    <span
+                      className={`ml-2 text-xs ${
+                        s.stock <= (s.min_stock ?? 0)
+                          ? "text-[var(--priority-critical)] font-bold"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      ({s.stock} {s.unit})
+                    </span>
+                  )}
                 </SelectItem>
               ))}
             </SelectContent>

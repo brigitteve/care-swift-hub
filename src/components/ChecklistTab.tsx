@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check, Plus } from "lucide-react";
+import { haptic, HAPTIC } from "@/lib/haptics";
+import { Confetti } from "@/lib/confetti";
 
 interface Item {
   id: string;
@@ -20,6 +22,7 @@ export function ChecklistTab({
 }) {
   const [items, setItems] = useState<Item[]>([]);
   const [title, setTitle] = useState("");
+  const [confettiKey, setConfettiKey] = useState(0);
 
   const load = async () => {
     const { data } = await supabase
@@ -45,6 +48,10 @@ export function ChecklistTab({
   }, [patientId]);
 
   const toggle = async (it: Item) => {
+    const becomingDone = !it.done;
+    if (becomingDone) {
+      haptic(it.critical ? HAPTIC.success : HAPTIC.tap);
+    }
     await supabase
       .from("checklist_items")
       .update({
@@ -52,6 +59,31 @@ export function ChecklistTab({
         completed_at: !it.done ? new Date().toISOString() : null,
       })
       .eq("id", it.id);
+    if (becomingDone && it.critical) {
+      setConfettiKey((k) => k + 1);
+      await supabase.from("achievements").insert({
+        user_id: userId,
+        patient_id: patientId,
+        type: "critical_task_done",
+        label: `Tarea crítica completada: ${it.title}`,
+        points: 20,
+      });
+    }
+    // Detect 100% completion of patient checklist
+    const after = items.map((i) =>
+      i.id === it.id ? { ...i, done: becomingDone } : i,
+    );
+    if (after.length > 0 && after.every((i) => i.done)) {
+      haptic(HAPTIC.success);
+      setConfettiKey((k) => k + 1);
+      await supabase.from("achievements").insert({
+        user_id: userId,
+        patient_id: patientId,
+        type: "checklist_100",
+        label: "Checklist 100% completado",
+        points: 50,
+      });
+    }
   };
 
   const add = async () => {
@@ -66,6 +98,7 @@ export function ChecklistTab({
 
   return (
     <div className="space-y-3">
+      <Confetti trigger={confettiKey} />
       <ul className="space-y-2">
         {items.map((it) => (
           <li key={it.id}>

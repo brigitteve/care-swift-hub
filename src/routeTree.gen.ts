@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSupervisorRouteImport } from './routes/_authenticated/supervisor'
 import { Route as AuthenticatedShiftsRouteImport } from './routes/_authenticated/shifts'
+import { Route as AuthenticatedMyShiftRouteImport } from './routes/_authenticated/my-shift'
 import { Route as AuthenticatedBoardRouteImport } from './routes/_authenticated/board'
 import { Route as AuthenticatedPatientsPatientIdRouteImport } from './routes/_authenticated/patients.$patientId'
 
@@ -30,9 +32,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSupervisorRoute = AuthenticatedSupervisorRouteImport.update({
+  id: '/supervisor',
+  path: '/supervisor',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedShiftsRoute = AuthenticatedShiftsRouteImport.update({
   id: '/shifts',
   path: '/shifts',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMyShiftRoute = AuthenticatedMyShiftRouteImport.update({
+  id: '/my-shift',
+  path: '/my-shift',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedBoardRoute = AuthenticatedBoardRouteImport.update({
@@ -51,14 +63,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/board': typeof AuthenticatedBoardRoute
+  '/my-shift': typeof AuthenticatedMyShiftRoute
   '/shifts': typeof AuthenticatedShiftsRoute
+  '/supervisor': typeof AuthenticatedSupervisorRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/board': typeof AuthenticatedBoardRoute
+  '/my-shift': typeof AuthenticatedMyShiftRoute
   '/shifts': typeof AuthenticatedShiftsRoute
+  '/supervisor': typeof AuthenticatedSupervisorRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
 }
 export interface FileRoutesById {
@@ -67,21 +83,39 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/board': typeof AuthenticatedBoardRoute
+  '/_authenticated/my-shift': typeof AuthenticatedMyShiftRoute
   '/_authenticated/shifts': typeof AuthenticatedShiftsRoute
+  '/_authenticated/supervisor': typeof AuthenticatedSupervisorRoute
   '/_authenticated/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/board' | '/shifts' | '/patients/$patientId'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/board'
+    | '/my-shift'
+    | '/shifts'
+    | '/supervisor'
+    | '/patients/$patientId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/board' | '/shifts' | '/patients/$patientId'
+  to:
+    | '/'
+    | '/login'
+    | '/board'
+    | '/my-shift'
+    | '/shifts'
+    | '/supervisor'
+    | '/patients/$patientId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/board'
+    | '/_authenticated/my-shift'
     | '/_authenticated/shifts'
+    | '/_authenticated/supervisor'
     | '/_authenticated/patients/$patientId'
   fileRoutesById: FileRoutesById
 }
@@ -114,11 +148,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/supervisor': {
+      id: '/_authenticated/supervisor'
+      path: '/supervisor'
+      fullPath: '/supervisor'
+      preLoaderRoute: typeof AuthenticatedSupervisorRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/shifts': {
       id: '/_authenticated/shifts'
       path: '/shifts'
       fullPath: '/shifts'
       preLoaderRoute: typeof AuthenticatedShiftsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-shift': {
+      id: '/_authenticated/my-shift'
+      path: '/my-shift'
+      fullPath: '/my-shift'
+      preLoaderRoute: typeof AuthenticatedMyShiftRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/board': {
@@ -140,13 +188,17 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedBoardRoute: typeof AuthenticatedBoardRoute
+  AuthenticatedMyShiftRoute: typeof AuthenticatedMyShiftRoute
   AuthenticatedShiftsRoute: typeof AuthenticatedShiftsRoute
+  AuthenticatedSupervisorRoute: typeof AuthenticatedSupervisorRoute
   AuthenticatedPatientsPatientIdRoute: typeof AuthenticatedPatientsPatientIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBoardRoute: AuthenticatedBoardRoute,
+  AuthenticatedMyShiftRoute: AuthenticatedMyShiftRoute,
   AuthenticatedShiftsRoute: AuthenticatedShiftsRoute,
+  AuthenticatedSupervisorRoute: AuthenticatedSupervisorRoute,
   AuthenticatedPatientsPatientIdRoute: AuthenticatedPatientsPatientIdRoute,
 }
 
@@ -162,13 +214,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
