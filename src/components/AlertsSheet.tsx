@@ -8,8 +8,9 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { BellOff, AlertTriangle } from "lucide-react";
+import { BellOff, AlertTriangle, Eye, Check } from "lucide-react";
 import { formatSince } from "@/lib/time";
+import { haptic, HAPTIC } from "@/lib/haptics";
 
 interface Alert {
   id: string;
@@ -18,6 +19,8 @@ interface Alert {
   message: string;
   severity: string;
   created_at: string;
+  seen?: boolean;
+  priority_score?: number;
   patients: { name: string; bed: string } | null;
 }
 
@@ -33,8 +36,9 @@ export function AlertsSheet({
   const load = async () => {
     const { data } = await supabase
       .from("alerts")
-      .select("id, patient_id, type, message, severity, created_at, patients(name, bed)")
+      .select("id, patient_id, type, message, severity, created_at, seen, priority_score, patients(name, bed)")
       .eq("resolved", false)
+      .order("priority_score", { ascending: false })
       .order("created_at", { ascending: false });
     setAlerts((data as unknown as Alert[]) ?? []);
   };
@@ -54,7 +58,13 @@ export function AlertsSheet({
   }, [open]);
 
   const dismiss = async (id: string) => {
+    haptic(HAPTIC.tap);
     await supabase.from("alerts").update({ resolved: true }).eq("id", id);
+  };
+
+  const markSeen = async (id: string) => {
+    haptic(HAPTIC.tap);
+    await supabase.from("alerts").update({ seen: true }).eq("id", id);
   };
 
   const dismissAll = async () => {
@@ -84,7 +94,7 @@ export function AlertsSheet({
                   a.severity === "critical"
                     ? "border-l-[var(--priority-critical)]"
                     : "border-l-[var(--priority-urgent)]"
-                }`}
+                } ${a.seen ? "opacity-70" : ""}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <Link
@@ -93,22 +103,43 @@ export function AlertsSheet({
                     onClick={() => onOpenChange(false)}
                     className="flex-1 min-w-0"
                   >
-                    <div className="font-semibold text-sm truncate">
-                      {a.patients?.name ?? "Paciente"} · {a.patients?.bed ?? ""}
+                    <div className="flex items-center gap-2">
+                      <div className="font-semibold text-sm truncate">
+                        {a.patients?.name ?? "Paciente"} · {a.patients?.bed ?? ""}
+                      </div>
+                      {typeof a.priority_score === "number" && (
+                        <span className="ml-auto shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                          {a.priority_score}
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm text-muted-foreground">{a.message}</div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       Hace {formatSince(a.created_at)}
                     </div>
                   </Link>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => dismiss(a.id)}
-                    className="shrink-0"
-                  >
-                    OK
-                  </Button>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    {!a.seen && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => markSeen(a.id)}
+                        className="h-9 w-9"
+                        aria-label="Marcar vista"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => dismiss(a.id)}
+                      className="h-9 w-9 text-[var(--priority-stable)]"
+                      aria-label="Resolver"
+                    >
+                      <Check className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
