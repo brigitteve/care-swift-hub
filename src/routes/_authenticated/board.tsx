@@ -28,7 +28,6 @@ function BoardPage() {
   const [shiftName, setShiftName] = useState("");
   const kpis = useShiftKpis(currentShiftId);
   const { isSupervisor } = useRole();
-  const [filter, setFilter] = useState<"mine" | "all">("all");
 
   useEffect(() => {
     if (!currentShiftId) {
