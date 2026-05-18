@@ -14,13 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          patient_id: string | null
+          points: number
+          shift_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          patient_id?: string | null
+          points?: number
+          shift_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          patient_id?: string | null
+          points?: number
+          shift_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       alerts: {
         Row: {
           created_at: string
           id: string
           message: string
           patient_id: string
+          priority_score: number
           resolved: boolean
+          seen: boolean
           severity: string
           type: string
           user_id: string
@@ -30,7 +65,9 @@ export type Database = {
           id?: string
           message: string
           patient_id: string
+          priority_score?: number
           resolved?: boolean
+          seen?: boolean
           severity?: string
           type: string
           user_id: string
@@ -40,7 +77,9 @@ export type Database = {
           id?: string
           message?: string
           patient_id?: string
+          priority_score?: number
           resolved?: boolean
+          seen?: boolean
           severity?: string
           type?: string
           user_id?: string
@@ -98,6 +137,7 @@ export type Database = {
       }
       patients: {
         Row: {
+          assigned_to: string | null
           bed: string
           created_at: string
           id: string
@@ -109,6 +149,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assigned_to?: string | null
           bed: string
           created_at?: string
           id?: string
@@ -120,6 +161,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assigned_to?: string | null
           bed?: string
           created_at?: string
           id?: string
@@ -163,24 +205,33 @@ export type Database = {
       }
       shifts: {
         Row: {
+          assigned_nurse_id: string | null
+          done_checklist: number
           ended_at: string | null
           id: string
           name: string
           started_at: string
+          total_checklist: number
           user_id: string
         }
         Insert: {
+          assigned_nurse_id?: string | null
+          done_checklist?: number
           ended_at?: string | null
           id?: string
           name: string
           started_at?: string
+          total_checklist?: number
           user_id: string
         }
         Update: {
+          assigned_nurse_id?: string | null
+          done_checklist?: number
           ended_at?: string | null
           id?: string
           name?: string
           started_at?: string
+          total_checklist?: number
           user_id?: string
         }
         Relationships: []
@@ -189,19 +240,25 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          min_stock: number
           name: string
+          stock: number
           unit: string
         }
         Insert: {
           created_at?: string
           id?: string
+          min_stock?: number
           name: string
+          stock?: number
           unit?: string
         }
         Update: {
           created_at?: string
           id?: string
+          min_stock?: number
           name?: string
+          stock?: number
           unit?: string
         }
         Relationships: []
@@ -247,6 +304,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       vital_signs: {
         Row: {
@@ -306,9 +384,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "nurse" | "supervisor" | "admin"
       patient_priority: "critical" | "urgent" | "moderate" | "stable"
     }
     CompositeTypes: {
@@ -437,6 +522,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["nurse", "supervisor", "admin"],
       patient_priority: ["critical", "urgent", "moderate", "stable"],
     },
   },
