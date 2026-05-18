@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { computePriority } from "./priority";
+import { computeAlertScore } from "./alerts-score";
+import { minutesSince } from "./time";
 
 const DEMO = [
   { name: "María González",  bed: "B-01", reason: "Dolor torácico",      vitals: { spo2: 88, hr: 138, temp: 37.4, pain: 9, bp_systolic: 90,  bp_diastolic: 60 } },
@@ -21,6 +23,7 @@ export async function seedDemoPatients(shiftId: string, userId: string) {
       .insert({
         shift_id: shiftId,
         user_id: userId,
+        assigned_to: userId,
         name: d.name,
         bed: d.bed,
         reason: d.reason,
@@ -31,13 +34,22 @@ export async function seedDemoPatients(shiftId: string, userId: string) {
       .single();
     if (error || !p) continue;
 
-    await supabase.from("vital_signs").insert({
-      patient_id: p.id,
-      user_id: userId,
-      ...d.vitals,
-      rr: 18,
-      glucose: 110,
-    });
+    // Insert 5 historical vitals (trending) so sparkline + history have data
+    for (let v = 4; v >= 0; v--) {
+      const drift = (5 - v) * (priority === "critical" ? -1 : 1);
+      await supabase.from("vital_signs").insert({
+        patient_id: p.id,
+        user_id: userId,
+        bp_systolic: (d.vitals.bp_systolic ?? 120) + drift,
+        bp_diastolic: (d.vitals.bp_diastolic ?? 80) + drift,
+        hr: (d.vitals.hr ?? 80) + drift * 2,
+        spo2: Math.max(80, Math.min(100, (d.vitals.spo2 ?? 97) - drift)),
+        temp: d.vitals.temp ?? 36.8,
+        pain: d.vitals.pain ?? 0,
+        rr: 18,
+        glucose: 110,
+      });
+    }
 
     await supabase.from("checklist_items").insert([
       { patient_id: p.id, user_id: userId, title: "Tomar signos vitales", critical: true },
@@ -46,13 +58,30 @@ export async function seedDemoPatients(shiftId: string, userId: string) {
     ]);
 
     if (priority === "critical" || priority === "urgent") {
+      const { score } = computeAlertScore(d.vitals, minutesSince(lastAttended));
       await supabase.from("alerts").insert({
         patient_id: p.id,
         user_id: userId,
         type: "vitals_out_of_range",
         message: `Signos vitales fuera de rango — ${d.name}`,
         severity: priority,
+        priority_score: score,
       });
+    }
+  }
+
+  // Ensure demo supplies have stock + a couple are low to surface the badge
+  const { data: sups } = await supabase
+    .from("supplies")
+    .select("id, name")
+    .order("name");
+  if (sups && sups.length > 0) {
+    for (let i = 0; i < sups.length; i++) {
+      const low = i < 2;
+      await supabase
+        .from("supplies")
+        .update({ stock: low ? 3 : 40, min_stock: 5 })
+        .eq("id", sups[i].id);
     }
   }
 }
