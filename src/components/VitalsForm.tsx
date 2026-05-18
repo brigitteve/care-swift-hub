@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { computePriority } from "@/lib/priority";
+import { computeAlertScore } from "@/lib/alerts-score";
 import { formatSince } from "@/lib/time";
 import { toast } from "sonner";
+import { haptic, HAPTIC } from "@/lib/haptics";
 
 interface VitalRow {
   id: string;
@@ -100,13 +102,16 @@ export function VitalsForm({
       .eq("id", patientId);
 
     if (priority === "critical" || priority === "urgent") {
+      const { score } = computeAlertScore(payload, 0);
       await supabase.from("alerts").insert({
         patient_id: patientId,
         user_id: userId,
         type: "vitals_out_of_range",
         message: "Signos vitales fuera de rango",
         severity: priority,
+        priority_score: score,
       });
+      haptic(HAPTIC.critical);
     }
 
     toast.success(`Guardado — prioridad: ${priority}`);
