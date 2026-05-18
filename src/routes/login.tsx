@@ -42,7 +42,7 @@ function LoginPage() {
 
   const signUp = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -52,8 +52,14 @@ function LoginPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Cuenta creada");
-    window.location.href = redirect || "/shifts";
+
+    if (data.session) {
+      toast.success("Cuenta creada");
+      router.navigate({ to: "/shifts" });
+      return;
+    }
+
+    toast.success("Cuenta creada. Revisa tu correo para confirmar el acceso.");
   };
 
   return (
