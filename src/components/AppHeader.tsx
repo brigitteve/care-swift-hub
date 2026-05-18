@@ -1,10 +1,12 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { Bell, Moon, Sun, LogOut, ArrowLeft } from "lucide-react";
+import { Bell, Moon, Sun, LogOut, ArrowLeft, BellRing } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores/useAppStore";
 import { Button } from "@/components/ui/button";
 import { AlertsSheet } from "./AlertsSheet";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { haptic, HAPTIC } from "@/lib/haptics";
 
 export function AppHeader({
   title,
@@ -17,6 +19,7 @@ export function AppHeader({
   const { theme, toggleTheme, setShift } = useAppStore();
   const [alertCount, setAlertCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const { permission, request, notify, supported } = usePushNotifications();
 
   useEffect(() => {
     let cancelled = false;
@@ -33,14 +36,30 @@ export function AppHeader({
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "alerts" },
-        () => load(),
+        async (payload) => {
+          load();
+          const row = (payload.new ?? {}) as {
+            severity?: string;
+            message?: string;
+            resolved?: boolean;
+            priority_score?: number;
+          };
+          if (
+            payload.eventType === "INSERT" &&
+            !row.resolved &&
+            (row.severity === "critical" || (row.priority_score ?? 0) >= 80)
+          ) {
+            haptic(HAPTIC.critical);
+            notify("PatientSOS — Crítico", row.message ?? "Alerta crítica");
+          }
+        },
       )
       .subscribe();
     return () => {
       cancelled = true;
       supabase.removeChannel(ch);
     };
-  }, []);
+  }, [notify]);
 
   const logout = async () => {
     setShift(null);
@@ -83,6 +102,17 @@ export function AppHeader({
             </span>
           )}
         </Button>
+        {supported && permission === "default" && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-11 w-11"
+            onClick={request}
+            aria-label="Activar notificaciones"
+          >
+            <BellRing className="h-5 w-5 text-[var(--priority-urgent)]" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
