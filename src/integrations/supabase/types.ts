@@ -14,7 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          patient_id: string
+          resolved: boolean
+          severity: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          patient_id: string
+          resolved?: boolean
+          severity?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          patient_id?: string
+          resolved?: boolean
+          severity?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_items: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          critical: boolean
+          done: boolean
+          id: string
+          patient_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          critical?: boolean
+          done?: boolean
+          id?: string
+          patient_id: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          critical?: boolean
+          done?: boolean
+          id?: string
+          patient_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_items_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patients: {
+        Row: {
+          bed: string
+          created_at: string
+          id: string
+          last_attended_at: string
+          name: string
+          priority: Database["public"]["Enums"]["patient_priority"]
+          reason: string | null
+          shift_id: string
+          user_id: string
+        }
+        Insert: {
+          bed: string
+          created_at?: string
+          id?: string
+          last_attended_at?: string
+          name: string
+          priority?: Database["public"]["Enums"]["patient_priority"]
+          reason?: string | null
+          shift_id: string
+          user_id: string
+        }
+        Update: {
+          bed?: string
+          created_at?: string
+          id?: string
+          last_attended_at?: string
+          name?: string
+          priority?: Database["public"]["Enums"]["patient_priority"]
+          reason?: string | null
+          shift_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string
+          id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          role?: string
+        }
+        Relationships: []
+      }
+      shifts: {
+        Row: {
+          ended_at: string | null
+          id: string
+          name: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          ended_at?: string | null
+          id?: string
+          name: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          ended_at?: string | null
+          id?: string
+          name?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      supplies: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          unit: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          unit?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          unit?: string
+        }
+        Relationships: []
+      }
+      supply_usages: {
+        Row: {
+          id: string
+          patient_id: string
+          quantity: number
+          supply_id: string
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          patient_id: string
+          quantity?: number
+          supply_id: string
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          patient_id?: string
+          quantity?: number
+          supply_id?: string
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supply_usages_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supply_usages_supply_id_fkey"
+            columns: ["supply_id"]
+            isOneToOne: false
+            referencedRelation: "supplies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vital_signs: {
+        Row: {
+          bp_diastolic: number | null
+          bp_systolic: number | null
+          created_at: string
+          glucose: number | null
+          hr: number | null
+          id: string
+          pain: number | null
+          patient_id: string
+          rr: number | null
+          spo2: number | null
+          temp: number | null
+          user_id: string
+        }
+        Insert: {
+          bp_diastolic?: number | null
+          bp_systolic?: number | null
+          created_at?: string
+          glucose?: number | null
+          hr?: number | null
+          id?: string
+          pain?: number | null
+          patient_id: string
+          rr?: number | null
+          spo2?: number | null
+          temp?: number | null
+          user_id: string
+        }
+        Update: {
+          bp_diastolic?: number | null
+          bp_systolic?: number | null
+          created_at?: string
+          glucose?: number | null
+          hr?: number | null
+          id?: string
+          pain?: number | null
+          patient_id?: string
+          rr?: number | null
+          spo2?: number | null
+          temp?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vital_signs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +309,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      patient_priority: "critical" | "urgent" | "moderate" | "stable"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +436,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      patient_priority: ["critical", "urgent", "moderate", "stable"],
+    },
   },
 } as const
