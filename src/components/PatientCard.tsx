@@ -2,7 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { PRIORITY_META, type Priority } from "@/lib/priority";
 import { formatSince, minutesSince } from "@/lib/time";
 import { useEffect, useState } from "react";
-import { BedDouble, Clock } from "lucide-react";
+import { BedDouble, Clock, Activity } from "lucide-react";
+import { Sparkline } from "./Sparkline";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface PatientRow {
   id: string;
@@ -17,10 +19,31 @@ export function PatientCard({ patient }: { patient: PatientRow }) {
   const meta = PRIORITY_META[patient.priority];
   // Re-render every 30s for live timer
   const [, tick] = useState(0);
+  const [spo2, setSpo2] = useState<number[]>([]);
   useEffect(() => {
     const id = setInterval(() => tick((n) => n + 1), 30000);
     return () => clearInterval(id);
   }, []);
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("vital_signs")
+      .select("spo2, hr")
+      .eq("patient_id", patient.id)
+      .order("created_at", { ascending: false })
+      .limit(8)
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const series = data
+          .map((r) => r.spo2 ?? r.hr)
+          .filter((v): v is number => v != null)
+          .reverse();
+        setSpo2(series);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [patient.id, patient.last_attended_at]);
   const mins = minutesSince(patient.last_attended_at);
   const pulse = patient.priority === "critical" && mins >= 10;
   const overdue = mins >= 15;
@@ -72,6 +95,15 @@ export function PatientCard({ patient }: { patient: PatientRow }) {
             >
               Hace {formatSince(patient.last_attended_at)} sin atención
             </span>
+            {spo2.length >= 2 && (
+              <span className="ml-auto flex items-center gap-1 text-muted-foreground">
+                <Activity className="h-3.5 w-3.5" />
+                <Sparkline
+                  values={spo2}
+                  color={`var(--priority-${patient.priority})`}
+                />
+              </span>
+            )}
           </div>
         </div>
       </div>
