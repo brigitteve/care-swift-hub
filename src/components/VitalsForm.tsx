@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { computePriority } from "@/lib/priority";
+import { useAlertThresholds } from "@/hooks/useAlertThresholds";
 import { computeAlertScore } from "@/lib/alerts-score";
 import { formatSince } from "@/lib/time";
 import { toast } from "sonner";
@@ -40,6 +40,7 @@ export function VitalsForm({
   patientId: string;
   userId: string;
 }) {
+  const { evaluate } = useAlertThresholds();
   const [vals, setVals] = useState<Record<string, string>>({});
   const [history, setHistory] = useState<VitalRow[]>([]);
   const [saving, setSaving] = useState(false);
@@ -94,8 +95,8 @@ export function VitalsForm({
       return toast.error(error.message);
     }
 
-    // Recompute priority + last_attended_at
-    const priority = computePriority(payload);
+    // Recompute priority + last_attended_at using configurable thresholds
+    const priority = evaluate(payload);
     await supabase
       .from("patients")
       .update({ priority, last_attended_at: new Date().toISOString() })

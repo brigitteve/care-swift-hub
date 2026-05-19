@@ -35,9 +35,10 @@ export function computePriority(v: VitalInput): Priority {
   return "stable";
 }
 
-export const PRIORITY_META: Record<Priority, { label: string; emoji: string; dot: string; chip: string; row: string }> = {
+export const PRIORITY_META: Record<Priority, { label: string; short: string; emoji: string; dot: string; chip: string; row: string }> = {
   critical: {
     label: "Crítico",
+    short: "Crít.",
     emoji: "🔴",
     dot: "bg-[var(--priority-critical)]",
     chip: "bg-[var(--priority-critical)] text-[var(--priority-critical-fg)]",
@@ -45,6 +46,7 @@ export const PRIORITY_META: Record<Priority, { label: string; emoji: string; dot
   },
   urgent: {
     label: "Urgente",
+    short: "Urg.",
     emoji: "🟠",
     dot: "bg-[var(--priority-urgent)]",
     chip: "bg-[var(--priority-urgent)] text-[var(--priority-urgent-fg)]",
@@ -52,6 +54,7 @@ export const PRIORITY_META: Record<Priority, { label: string; emoji: string; dot
   },
   moderate: {
     label: "Moderado",
+    short: "Mod.",
     emoji: "🟡",
     dot: "bg-[var(--priority-moderate)]",
     chip: "bg-[var(--priority-moderate)] text-[var(--priority-moderate-fg)]",
@@ -59,6 +62,7 @@ export const PRIORITY_META: Record<Priority, { label: string; emoji: string; dot
   },
   stable: {
     label: "Estable",
+    short: "Est.",
     emoji: "🟢",
     dot: "bg-[var(--priority-stable)]",
     chip: "bg-[var(--priority-stable)] text-[var(--priority-stable-fg)]",

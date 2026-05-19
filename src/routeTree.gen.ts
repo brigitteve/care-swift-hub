@@ -17,6 +17,8 @@ import { Route as AuthenticatedSupervisorRouteImport } from './routes/_authentic
 import { Route as AuthenticatedShiftsRouteImport } from './routes/_authenticated/shifts'
 import { Route as AuthenticatedMyShiftRouteImport } from './routes/_authenticated/my-shift'
 import { Route as AuthenticatedBoardRouteImport } from './routes/_authenticated/board'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
 import { Route as AuthenticatedPatientsPatientIdRouteImport } from './routes/_authenticated/patients.$patientId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -58,6 +60,16 @@ const AuthenticatedBoardRoute = AuthenticatedBoardRouteImport.update({
   path: '/board',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAlertsRoute = AuthenticatedAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedPatientsPatientIdRoute =
   AuthenticatedPatientsPatientIdRouteImport.update({
     id: '/patients/$patientId',
@@ -68,6 +80,8 @@ const AuthenticatedPatientsPatientIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/alerts': typeof AuthenticatedAlertsRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/board': typeof AuthenticatedBoardRoute
   '/my-shift': typeof AuthenticatedMyShiftRoute
   '/shifts': typeof AuthenticatedShiftsRoute
@@ -78,6 +92,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/alerts': typeof AuthenticatedAlertsRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/board': typeof AuthenticatedBoardRoute
   '/my-shift': typeof AuthenticatedMyShiftRoute
   '/shifts': typeof AuthenticatedShiftsRoute
@@ -90,6 +106,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/board': typeof AuthenticatedBoardRoute
   '/_authenticated/my-shift': typeof AuthenticatedMyShiftRoute
   '/_authenticated/shifts': typeof AuthenticatedShiftsRoute
@@ -102,6 +120,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/alerts'
+    | '/analytics'
     | '/board'
     | '/my-shift'
     | '/shifts'
@@ -112,6 +132,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/alerts'
+    | '/analytics'
     | '/board'
     | '/my-shift'
     | '/shifts'
@@ -123,6 +145,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/alerts'
+    | '/_authenticated/analytics'
     | '/_authenticated/board'
     | '/_authenticated/my-shift'
     | '/_authenticated/shifts'
@@ -196,6 +220,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBoardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/alerts': {
+      id: '/_authenticated/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AuthenticatedAlertsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/patients/$patientId': {
       id: '/_authenticated/patients/$patientId'
       path: '/patients/$patientId'
@@ -207,6 +245,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedBoardRoute: typeof AuthenticatedBoardRoute
   AuthenticatedMyShiftRoute: typeof AuthenticatedMyShiftRoute
   AuthenticatedShiftsRoute: typeof AuthenticatedShiftsRoute
@@ -215,6 +255,8 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedBoardRoute: AuthenticatedBoardRoute,
   AuthenticatedMyShiftRoute: AuthenticatedMyShiftRoute,
   AuthenticatedShiftsRoute: AuthenticatedShiftsRoute,

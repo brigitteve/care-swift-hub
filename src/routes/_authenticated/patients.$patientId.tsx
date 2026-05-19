@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VitalsForm } from "@/components/VitalsForm";
 import { ChecklistTab } from "@/components/ChecklistTab";
 import { SuppliesTab } from "@/components/SuppliesTab";
+import { NotesTab } from "@/components/NotesTab";
+import { HistorialTab } from "@/components/HistorialTab";
 import { PRIORITY_META, type Priority } from "@/lib/priority";
 import { BedDouble } from "lucide-react";
 
@@ -57,6 +59,7 @@ function PatientPage() {
     <div className="min-h-screen bg-background pb-12">
       <AppHeader title={patient?.name ?? "Paciente"} back="/board" />
       <main className="mx-auto max-w-md p-3 space-y-3">
+        {/* Priority banner */}
         {patient && meta && (
           <div className={`rounded-2xl border-l-8 ${meta.row} border bg-card p-4`}>
             <div className="flex items-center justify-between gap-3">
@@ -74,11 +77,14 @@ function PatientPage() {
           </div>
         )}
 
+        {/* 5-Tab navigation */}
         <Tabs defaultValue="vitals" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-12">
-            <TabsTrigger value="vitals" className="h-10 text-sm font-semibold">Signos</TabsTrigger>
-            <TabsTrigger value="checklist" className="h-10 text-sm font-semibold">Tareas</TabsTrigger>
-            <TabsTrigger value="supplies" className="h-10 text-sm font-semibold">Insumos</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 h-12">
+            <TabsTrigger value="vitals"   className="h-10 text-xs font-semibold px-1">Signos</TabsTrigger>
+            <TabsTrigger value="checklist" className="h-10 text-xs font-semibold px-1">Tareas</TabsTrigger>
+            <TabsTrigger value="supplies" className="h-10 text-xs font-semibold px-1">Insumos</TabsTrigger>
+            <TabsTrigger value="notes"    className="h-10 text-xs font-semibold px-1">Notas</TabsTrigger>
+            <TabsTrigger value="history"  className="h-10 text-xs font-semibold px-1">Historial</TabsTrigger>
           </TabsList>
           <TabsContent value="vitals" className="pt-3">
             <VitalsForm patientId={patientId} userId={user.id} />
@@ -88,6 +94,12 @@ function PatientPage() {
           </TabsContent>
           <TabsContent value="supplies" className="pt-3">
             <SuppliesTab patientId={patientId} userId={user.id} />
+          </TabsContent>
+          <TabsContent value="notes" className="pt-3">
+            <NotesTab patientId={patientId} userId={user.id} />
+          </TabsContent>
+          <TabsContent value="history" className="pt-3">
+            <HistorialTab patientId={patientId} />
           </TabsContent>
         </Tabs>
       </main>

@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { Bell, Moon, Sun, LogOut, ArrowLeft, BellRing } from "lucide-react";
+import { Bell, Moon, Sun, LogOut, ArrowLeft, BellRing, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores/useAppStore";
@@ -101,6 +101,18 @@ export function AppHeader({
               {alertCount > 99 ? "99+" : alertCount}
             </span>
           )}
+        </Button>
+        {/* Dedicated alerts page shortcut (long-tap hint via title) */}
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="h-11 w-11"
+          aria-label="Centro de alertas"
+        >
+          <Link to="/alerts" title="Centro de alertas">
+            <BarChart3 className="h-5 w-5" />
+          </Link>
         </Button>
         {supported && permission === "default" && (
           <Button
